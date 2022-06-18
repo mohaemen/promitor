@@ -21,7 +21,7 @@ discuss your scenario_
 <!-- markdownlint-disable MD013 -->
 <!-- markdownlint-disable MD029 -->
 <!-- markdownlint-disable MD032 -->
-1. Add your new scraping type to the `Promitor.Core.Scraping.Configuration.Model.ResourceType`.
+1. Add your new scraping type to the `Promitor.Core.Contracts`.
 2. Describe the resource for which you're scraping metrics by creating `<New-Type>ResourceDefinition`
   and inherit from
   `Promitor.Core.Scraping.Configuration.Model.Metrics.AzureResourceDefinition` -
@@ -66,8 +66,10 @@ This requires the following steps:
 We'll add a new scraper that pulls the metrics from Azure Monitor:
 
 1. Implement a scraper, that inherits from `AzureMonitorScraper<TResourceDefinition>`, which will specify what resource to scrape with Azure Monitor.
+    - You can find it in `.\src\Promitor.Core.Scraping\ResourceTypes`.
 2. Hook your new scraper in our `MetricScraperFactory` which determines what scraper
   to use for the passed configuration.
+    - You can find it in `.\src\Promitor.Core.Scraping\Factories`.
 
 ### Resource Discovery
 
@@ -75,8 +77,6 @@ We'll add dynamic resource discovery support by using Azure Resource Graph:
 
 1. Implement a new discovery query that [create an Azure Resource Graph query](https://docs.microsoft.com/en-us/azure/governance/resource-graph/concepts/query-language).It should inherits from `ResourceDiscoveryQuery` and be located in `.\src\Promitor.Agents.ResourceDiscovery\Graph\ResourceTypes`
 2. Support the new resource type in `ResourceDiscoveryFactory`
-3. Add discovery support badge in scraper documentation page - `![Resource Discovery Support Badge](https://img.shields.io/badge/Support%20for%20Resource%20Discovery-Yes-green.svg)`
-4. Add scraper to supported scrapers on resource discovery configuration documentation page `docs/configuration/v2.x/resource-discovery.md` in alphabetical order.
 
 <!-- markdownlint-enable -->
 
@@ -86,10 +86,26 @@ We'll add dynamic resource discovery support by using Azure Resource Graph:
 
 ------------------------
 
+## Writing Integration Tests
+
+Every new scraper, should be automatically tested to ensure that it can be scraped.
+
+To achieve this, the steps are fairly simple:
+
+1. Provision a new test resource in our testing infrastructure ([GitHub](https://github.com/promitor/azure-infrastructure))
+2. Define a new resource discovery group
+    - You can find it on `config\promitor\resource-discovery\resource-discovery-declaration.yaml`
+3. Define a new metric in the scraper configuration with a valid Azure Monitor metric for the service ([overview](https://docs.microsoft.com/en-us/azure/azure-monitor/platform/metrics-supported)]
+    - You can find it on `config\promitor\scraper\metrics.yaml`
+
+Our testing infrastructure will pick up the new metric automatically and ensure that it is being reported!
+
 ## Documentation
 
 Features are great to have but without clear & well-written documentation they are
 somewhat useless.
+
+The documentation for Promitor is hosted on [docs.promitor.io](https://docs.promitor.io) and is maintained in [promitor/legacy-docs](https://github.com/promitor/legacy-docs).
 
 Please provide documentation on the following:
 
@@ -100,10 +116,22 @@ Please provide documentation on the following:
 This should be provided in a new file under `docs\configuration\v2.x\metrics` and be listed
 under the supported providers on `docs/configuration/v2.x/metrics/index.md` in alphabetical order.
 
+When the scraper supports resource discovery, the following documentation is required:
+
+1. Add discovery support badge in scraper documentation page - `![Resource Discovery Support Badge](https://img.shields.io/badge/Support%20for%20Resource%20Discovery-Yes-green.svg)`
+2. Add scraper to supported scrapers on resource discovery configuration documentation page
+ `docs/configuration/v2.x/resource-discovery.md` in alphabetical order.
+
+## Changelog
+
+New scalers are a great additions and we should make sure that they are listed in our changelog.
+
+Learn about our changelog in our [contribution guide](CONTRIBUTING.md#Changelog).
+
 ## See It In Action
 
 Now that you are done, make sure you run Promitor locally so verify that it generates the correct metrics!
 
 When opening the pull request (PR), feel free to copy the generated Prometheus metrics for review.
 
-Learn how to run it in our [development guide](development-guide.md#running-promitor).
+Learn how to run it in our [development guide](contributing.md#running-promitor).

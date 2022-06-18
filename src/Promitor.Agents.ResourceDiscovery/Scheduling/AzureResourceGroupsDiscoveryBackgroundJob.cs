@@ -6,6 +6,7 @@ using GuardNet;
 using Microsoft.Extensions.Logging;
 using Promitor.Agents.ResourceDiscovery.Graph.Model;
 using Promitor.Agents.ResourceDiscovery.Graph.Repositories.Interfaces;
+using Promitor.Core.Contracts;
 using Promitor.Core.Metrics.Prometheus.Collectors.Interfaces;
 
 namespace Promitor.Agents.ResourceDiscovery.Scheduling
@@ -29,29 +30,33 @@ namespace Promitor.Agents.ResourceDiscovery.Scheduling
         {
             Logger.LogTrace("Discovering Azure Resource Groups...");
 
-            // Discover Azure subscriptions
-            var discoveredResourceGroups = await AzureResourceRepository.DiscoverAzureResourceGroupsAsync();
-
-            // Report discovered information as metric
-            foreach (var resourceGroupInformation in discoveredResourceGroups)
+            PagedPayload<AzureResourceGroupInformation> discoveredResourceGroups;
+            do
             {
-                ReportDiscoveredAzureInfo(resourceGroupInformation);
+                // Discover Azure subscriptions
+                discoveredResourceGroups = await AzureResourceRepository.DiscoverAzureResourceGroupsAsync(pageSize: 1000, currentPage: 0);
+
+                // Report discovered information as metric
+                foreach (var resourceGroupInformation in discoveredResourceGroups.Result)
+                {
+                    ReportDiscoveredAzureInfo(resourceGroupInformation);
+                }
             }
+            while (discoveredResourceGroups.HasMore);
 
             Logger.LogTrace("Azure Resource Groups discovered.");
         }
 
         private void ReportDiscoveredAzureInfo(AzureResourceGroupInformation resourceGroupInformation)
         {
-            var managedByLabel = string.IsNullOrWhiteSpace(resourceGroupInformation.ManagedBy) ? "n/a" : resourceGroupInformation.ManagedBy;
             var labels = new Dictionary<string, string>
             {
                 { "tenant_id", resourceGroupInformation.TenantId },
                 { "subscription_id", resourceGroupInformation.SubscriptionId },
                 { "resource_group_name", resourceGroupInformation.Name },
-                { "provisioning_state", resourceGroupInformation.ProvisioningState },
-                { "managed_by", managedByLabel },
-                { "region", resourceGroupInformation.Region }
+                { "provisioning_state", GetValueOrDefault(resourceGroupInformation.ProvisioningState, "n/a") },
+                { "managed_by", GetValueOrDefault(resourceGroupInformation.ManagedBy, "n/a") },
+                { "region", GetValueOrDefault(resourceGroupInformation.Region, "n/a") }
             };
 
             // Report metric in Prometheus endpoint

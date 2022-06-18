@@ -6,6 +6,7 @@ using GuardNet;
 using Microsoft.Extensions.Logging;
 using Promitor.Agents.ResourceDiscovery.Graph.Model;
 using Promitor.Agents.ResourceDiscovery.Graph.Repositories.Interfaces;
+using Promitor.Core.Contracts;
 using Promitor.Core.Metrics.Prometheus.Collectors.Interfaces;
 
 namespace Promitor.Agents.ResourceDiscovery.Scheduling
@@ -30,13 +31,19 @@ namespace Promitor.Agents.ResourceDiscovery.Scheduling
             Logger.LogTrace("Discovering Azure subscriptions...");
 
             // Discover Azure subscriptions
-            var discoveredLandscape = await AzureResourceRepository.DiscoverAzureSubscriptionsAsync();
 
-            // Report discovered information as metric
-            foreach (var discoveredLandscapeItem in discoveredLandscape)
+            PagedPayload<AzureSubscriptionInformation> discoveredLandscape;
+            do
             {
-                ReportDiscoveredAzureInfo(discoveredLandscapeItem);
+                discoveredLandscape = await AzureResourceRepository.DiscoverAzureSubscriptionsAsync(pageSize: 1000, currentPage: 0);
+
+                // Report discovered information as metric
+                foreach (var discoveredLandscapeItem in discoveredLandscape.Result)
+                {
+                    ReportDiscoveredAzureInfo(discoveredLandscapeItem);
+                }
             }
+            while (discoveredLandscape.HasMore);
 
             Logger.LogTrace("Azure subscriptions discovered...");
         }
@@ -49,10 +56,10 @@ namespace Promitor.Agents.ResourceDiscovery.Scheduling
                 { "tenant_id", azureLandscapeInformation.TenantId },
                 { "subscription_id", azureLandscapeInformation.Id },
                 { "subscription_name", azureLandscapeInformation.Name},
-                { "quota_id", azureLandscapeInformation.QuotaId},
-                { "spending_limit", azureLandscapeInformation.SpendingLimit},
-                { "state", azureLandscapeInformation.State},
-                { "authorization", azureLandscapeInformation.AuthorizationSource}
+                { "quota_id", GetValueOrDefault(azureLandscapeInformation.QuotaId, "n/a")},
+                { "spending_limit", GetValueOrDefault(azureLandscapeInformation.SpendingLimit, "n/a")},
+                { "state", GetValueOrDefault(azureLandscapeInformation.State, "n/a")},
+                { "authorization", GetValueOrDefault(azureLandscapeInformation.AuthorizationSource, "n/a")}
             };
 
             // Report metric in Prometheus endpoint

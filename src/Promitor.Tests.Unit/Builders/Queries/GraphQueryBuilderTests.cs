@@ -36,7 +36,7 @@ namespace Promitor.Tests.Unit.Builders.Queries
                 " or type =~ 'resource type 2'";
 
             // Act
-            GraphQueryBuilder graphQueryBuilder = GraphQueryBuilder.ForResourceType(new[] { resourceType1, resourceType2 });
+            GraphQueryBuilder graphQueryBuilder = GraphQueryBuilder.ForResourceType(resourceType1, resourceType2);
 
             // Assert
             Assert.Equal(expectedQuery, graphQueryBuilder.Build());
@@ -146,7 +146,7 @@ namespace Promitor.Tests.Unit.Builders.Queries
             string expectedQuery =
                 $"Resources{Environment.NewLine}" +
                 $"| where type =~ 'resource type'{Environment.NewLine}" +
-                "| where tags['tag key 1'] == 'tag value 1' or tags['tag key 2'] == 'tag value 2' or tags['tag key 3'] == 'tag value 3'";
+                "| where tags['tag key 1'] matches regex @'^(?i)tag value 1$' or tags['tag key 2'] matches regex @'^(?i)tag value 2$' or tags['tag key 3'] matches regex @'^(?i)tag value 3$'";
 
             GraphQueryBuilder graphQueryBuilder = GraphQueryBuilder.ForResourceType(ResourceType);
 
@@ -197,7 +197,7 @@ namespace Promitor.Tests.Unit.Builders.Queries
             GraphQueryBuilder graphQueryBuilder = GraphQueryBuilder.ForResourceType(ResourceType);
 
             // Act
-            graphQueryBuilder.Project(new[] { field1, field2 });
+            graphQueryBuilder.Project(field1, field2);
 
             // Assert
             Assert.Equal(expectedQuery, graphQueryBuilder.Build());

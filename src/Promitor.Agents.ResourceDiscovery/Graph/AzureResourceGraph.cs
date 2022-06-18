@@ -16,8 +16,10 @@ using Promitor.Agents.ResourceDiscovery.Configuration;
 using Promitor.Agents.ResourceDiscovery.Graph.Exceptions;
 using Promitor.Agents.ResourceDiscovery.Graph.Interfaces;
 using Promitor.Agents.ResourceDiscovery.Graph.Model;
+using Promitor.Agents.ResourceDiscovery.Graph.RequestHandlers;
 using Promitor.Core;
 using Promitor.Core.Extensions;
+using Promitor.Core.Metrics.Prometheus.Collectors.Interfaces;
 using Promitor.Integrations.Azure.Authentication;
 
 namespace Promitor.Agents.ResourceDiscovery.Graph
@@ -25,6 +27,7 @@ namespace Promitor.Agents.ResourceDiscovery.Graph
     public class AzureResourceGraph : IAzureResourceGraph
     {
         private readonly IOptionsMonitor<ResourceDeclaration> _resourceDeclarationMonitor;
+        private readonly IPrometheusMetricsCollector _prometheusMetricsCollector;
         private readonly ILogger<AzureResourceGraph> _logger;
 
         private ResourceGraphClient _graphClient;
@@ -39,8 +42,9 @@ namespace Promitor.Agents.ResourceDiscovery.Graph
         
         private readonly AzureAuthenticationInfo _azureAuthenticationInfo;
 
-        public AzureResourceGraph(IOptionsMonitor<ResourceDeclaration> resourceDeclarationMonitor, IConfiguration configuration, ILogger<AzureResourceGraph> logger)
+        public AzureResourceGraph(IPrometheusMetricsCollector prometheusMetricsCollector, IOptionsMonitor<ResourceDeclaration> resourceDeclarationMonitor, IConfiguration configuration, ILogger<AzureResourceGraph> logger)
         {
+            Guard.NotNull(prometheusMetricsCollector, nameof(prometheusMetricsCollector));
             Guard.NotNull(resourceDeclarationMonitor, nameof(resourceDeclarationMonitor));
             Guard.NotNull(resourceDeclarationMonitor.CurrentValue, nameof(resourceDeclarationMonitor.CurrentValue));
             Guard.NotNull(resourceDeclarationMonitor.CurrentValue.AzureLandscape, nameof(resourceDeclarationMonitor.CurrentValue.AzureLandscape));
@@ -49,45 +53,51 @@ namespace Promitor.Agents.ResourceDiscovery.Graph
 
             _logger = logger;
             _resourceDeclarationMonitor = resourceDeclarationMonitor;
+            _prometheusMetricsCollector = prometheusMetricsCollector;
             _azureAuthenticationInfo = AzureAuthenticationFactory.GetConfiguredAzureAuthentication(configuration);
         }
 
-        public async Task<JObject> QueryAzureLandscapeAsync(string queryName, string query)
+        public async Task<PagedQueryResult> QueryAzureLandscapeAsync(string queryName, string query, int pageSize, int currentPage)
         {
             Guard.NotNullOrWhitespace(query, nameof(query));
 
-            var queryResponse = await QueryAsync(queryName, query, targetSubscriptions: null);
-            return queryResponse.Data as JObject;
+            var queryResponse = await QueryAsync(queryName, query, pageSize, currentPage, targetSubscriptions: null);
+            return new PagedQueryResult(queryResponse.Data as JObject, queryResponse.TotalRecords, currentPage, pageSize);
         }
 
-        public async Task<JObject> QueryTargetSubscriptionsAsync(string queryName, string query)
+        public async Task<PagedQueryResult> QueryTargetSubscriptionsAsync(string queryName, string query, int pageSize, int currentPage)
         {
             Guard.NotNullOrWhitespace(query, nameof(query));
 
-            var queryResponse = await QueryAsync(queryName, query, Subscriptions);
-            return queryResponse.Data as JObject;
+            var queryResponse = await QueryAsync(queryName, query, pageSize, currentPage, Subscriptions);
+            
+            return new PagedQueryResult(queryResponse.Data as JObject, queryResponse.TotalRecords, currentPage, pageSize);
         }
 
-        public async Task<List<Resource>> QueryForResourcesAsync(string queryName, string query, List<string> targetSubscriptions)
+        public async Task<List<Resource>> QueryForResourcesAsync(string queryName, string query, List<string> targetSubscriptions, int pageSize, int currentPage)
         {
             Guard.NotNullOrWhitespace(query, nameof(query));
 
-            var queryResult = await QueryAsync(queryName, query, targetSubscriptions);
+            var queryResult = await QueryAsync(queryName, query, pageSize, currentPage, targetSubscriptions);
             var foundResources = ParseQueryResults(queryResult);
 
             return foundResources;
         }
 
-        private async Task<QueryResponse> QueryAsync(string queryName, string query, List<string> targetSubscriptions = null)
+        private async Task<QueryResponse> QueryAsync(string queryName, string query, int pageSize, int currentPage, List<string> targetSubscriptions = null)
         {
             Guard.NotNullOrWhitespace(query, nameof(query));
 
             var response = await InteractWithAzureResourceGraphAsync(queryName, query,  async graphClient =>
             {
+                var pageSkip = currentPage > 0 ? pageSize * (currentPage - 1) : 0;
                 var queryOptions = new QueryRequestOptions
                 {
-                    ResultFormat = ResultFormat.Table
+                    ResultFormat = ResultFormat.Table,
+                    Skip = pageSkip,
+                    Top = pageSize
                 };
+
                 var queryRequest = new QueryRequest(query, options: queryOptions, subscriptions: targetSubscriptions);
                 return await graphClient.ResourcesAsync(queryRequest);
             });
@@ -95,7 +105,6 @@ namespace Promitor.Agents.ResourceDiscovery.Graph
             return response;
         }
 
-        // TODO: Clean up
         private async Task<TResponse> InteractWithAzureResourceGraphAsync<TResponse>(string queryName, string query, Func<ResourceGraphClient, Task<TResponse>> interactionFunc, List<string> targetSubscriptions = null)
         {
             Guard.NotNullOrWhitespace(query, nameof(query));
@@ -108,7 +117,7 @@ namespace Promitor.Agents.ResourceDiscovery.Graph
                 var graphClient = await GetOrCreateClient();
 
                 bool isSuccessfulDependency = false;
-                using (var dependencyMeasurement = DependencyMeasurement.Start())
+                using (var dependencyMeasurement = DurationMeasurement.Start())
                 {
                     try
                     {
@@ -264,8 +273,16 @@ namespace Promitor.Agents.ResourceDiscovery.Graph
 
             var credentials = await AzureAuthenticationFactory.GetTokenCredentialsAsync(azureEnvironment.ManagementEndpoint, TenantId, _azureAuthenticationInfo, azureAuthorityHost);
             var resourceManagerBaseUri = new Uri(azureEnvironment.ResourceManagerEndpoint);
+            var appId = DetermineApplicationId(_azureAuthenticationInfo);
 
-            var resourceGraphClient = new ResourceGraphClient(resourceManagerBaseUri, credentials);
+            var metricLabels = new Dictionary<string, string>
+            {
+                {"tenant_id", TenantId},
+                {"cloud", azureEnvironment.GetDisplayName()},
+                {"app_id", appId},
+                {"auth_mode", _azureAuthenticationInfo.Mode.ToString()},
+            };
+            var resourceGraphClient = new ResourceGraphClient(resourceManagerBaseUri, credentials, new AzureResourceGraphThrottlingRequestHandler(_prometheusMetricsCollector, metricLabels, _logger));
 
             var version = Promitor.Core.Version.Get();
             var promitorUserAgent = UserAgent.Generate("Resource-Discovery", version);
@@ -273,6 +290,21 @@ namespace Promitor.Agents.ResourceDiscovery.Graph
             resourceGraphClient.UserAgent.TryParseAdd(promitorUserAgent);
 
             return resourceGraphClient;
+        }
+
+        private string DetermineApplicationId(AzureAuthenticationInfo azureAuthenticationInfo)
+        {
+            switch (azureAuthenticationInfo.Mode)
+            {
+                case AuthenticationMode.ServicePrincipal:
+                case AuthenticationMode.UserAssignedManagedIdentity:
+                    Guard.NotNullOrWhitespace(azureAuthenticationInfo.IdentityId, nameof(azureAuthenticationInfo.IdentityId));
+                    return azureAuthenticationInfo.IdentityId;
+                case AuthenticationMode.SystemAssignedManagedIdentity:
+                    return "system-assigned-identity";
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(azureAuthenticationInfo.Mode));
+            }
         }
     }
 }

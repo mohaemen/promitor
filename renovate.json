@@ -1,25 +1,47 @@
 {
-  "masterIssue": false,
-  "branchPrefix":"renovate-",
-  "separateMajorMinor": false,
-  "labels":["dependencies"],
-  "assignees": ["@tomkerkhove"],
-  "ignoreDeps":[],
-  "prHourlyLimit": 0,
-  "prConcurrentLimit": 0,
-  "packageRules": [
-    {
-      "datasources": ["docker"],
-      "packagePatterns": ["^mcr.microsoft.com/dotnet/core/"],
-      "groupName": ".NET Core Docker containers"
-    }
-  ],
-  "extends": [
-    "config:base",
-    "default:pinDigestsDisabled",
-    "default:disablePrControls"
-  ],
-  "nuget": {
-    "enabled": true
-   }
+	"masterIssue": true,
+	"branchPrefix": "renovate-",
+	"separateMajorMinor": false,
+	"labels": ["dependencies"],
+	"assignees": ["@tomkerkhove"],
+	"ignoreDeps": [],
+	"prHourlyLimit": 0,
+	"prConcurrentLimit": 0,
+	"rebaseLabel": "renovate-rebase",
+	"packageRules": [{
+			"datasources": ["docker"],
+			"packagePatterns": ["^mcr.microsoft.com/dotnet/"],
+			"groupName": ".NET Core Docker containers"
+		},
+		{
+			"extends": "monorepo:dotnet",
+			"groupName": ".NET",
+			"labels": [
+				"NuGet",
+				".NET"
+			]
+		},
+		{
+			"groupName": "AutoMapper",
+			"matchPackagePrefixes": [
+			  "AutoMapper"
+			]
+		},
+		{
+			"extends": "monorepo:aspnet extensions",
+			"groupName": ".NET Extensions",
+			"labels": [
+				"NuGet",
+				".NET"
+			]
+		}
+	],
+	"extends": [
+		"config:base",
+		"default:pinDigestsDisabled",
+		"default:disablePrControls"
+	],
+	"nuget": {
+		"enabled": true
+	}
 }

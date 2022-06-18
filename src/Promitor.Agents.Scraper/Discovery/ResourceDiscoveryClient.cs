@@ -1,14 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Arcus.Observability.Telemetry.Core;
 using GuardNet;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Promitor.Agents.Core.Contracts;
 using Promitor.Agents.Core.Serialization;
 using Promitor.Agents.Scraper.Configuration;
 using Promitor.Core.Contracts;
@@ -34,19 +33,19 @@ namespace Promitor.Agents.Scraper.Discovery
             _configuration = configuration;
         }
 
-        public async Task<List<AzureResourceDefinition>> GetAsync(string resourceDiscoveryGroupName)
+        public async Task<PagedPayload<AzureResourceDefinition>> GetAsync(string resourceDiscoveryGroupName, int currentPage)
         {
-            var uri = $"api/v1/resources/groups/{resourceDiscoveryGroupName}/discover";
+            var uri = $"api/v2/resources/groups/{resourceDiscoveryGroupName}/discover?currentPage={currentPage}";
             var rawResponse = await SendGetRequestAsync(uri);
 
-            var foundResources = JsonConvert.DeserializeObject<List<AzureResourceDefinition>>(rawResponse, _serializerSettings);
+            var foundResources = JsonConvert.DeserializeObject<PagedPayload<AzureResourceDefinition>>(rawResponse, _serializerSettings);
             return foundResources;
         }
 
-        public async Task<HealthReport> GetHealthAsync()
+        public async Task<AgentHealthReport> GetHealthAsync()
         {
             var rawResponse = await SendGetRequestAsync("api/v1/health");
-            var healthReport = JsonConvert.DeserializeObject<HealthReport>(rawResponse, new HealthReportEntryConverter());
+            var healthReport = JsonConvert.DeserializeObject<AgentHealthReport>(rawResponse, new HealthReportEntryConverter());
             return healthReport;
         }
 
@@ -64,7 +63,7 @@ namespace Promitor.Agents.Scraper.Discovery
 
         private async Task<HttpResponseMessage> SendRequestToApiAsync(HttpRequestMessage request)
         {
-            using (var dependencyMeasurement = DependencyMeasurement.Start())
+            using (var dependencyMeasurement = DurationMeasurement.Start())
             {
                 HttpResponseMessage response = null;
                 try

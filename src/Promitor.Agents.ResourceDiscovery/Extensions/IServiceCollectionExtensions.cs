@@ -19,6 +19,7 @@ using Promitor.Agents.ResourceDiscovery.Usability;
 using Promitor.Agents.ResourceDiscovery.Validation.Steps;
 using Promitor.Core.Metrics.Prometheus.Collectors.Interfaces;
 using Promitor.Integrations.Azure.Authentication.Configuration;
+// ReSharper disable RedundantTypeArgumentsOfMethod
 
 namespace Promitor.Agents.ResourceDiscovery.Extensions
 {
@@ -62,8 +63,16 @@ namespace Promitor.Agents.ResourceDiscovery.Extensions
                         schedulerOptions.RunImmediately = true;
                     },
                     jobName: jobName);
-
-                builder.UnobservedTaskExceptionHandler = (sender, exceptionEventArgs) => BackgroundJobMonitor.HandleException(jobName, exceptionEventArgs, services);
+                
+                builder.AddUnobservedTaskExceptionHandler(s =>
+                {
+                    return
+                        (_, exceptionEventArgs) =>
+                        {
+                            var exceptionLogger = s.GetService<ILogger<BackgroundJobMonitor>>();
+                            BackgroundJobMonitor.HandleException(jobName, exceptionEventArgs, exceptionLogger);
+                        };
+                });
             });
             services.AddScheduler(builder =>
             {
@@ -82,8 +91,16 @@ namespace Promitor.Agents.ResourceDiscovery.Extensions
                         schedulerOptions.RunImmediately = true;
                     },
                     jobName: jobName);
-
-                builder.UnobservedTaskExceptionHandler = (sender, exceptionEventArgs) => BackgroundJobMonitor.HandleException(jobName, exceptionEventArgs, services);
+                
+                builder.AddUnobservedTaskExceptionHandler(s =>
+                {
+                    return
+                        (_, exceptionEventArgs) =>
+                        {
+                            var exceptionLogger = s.GetService<ILogger<BackgroundJobMonitor>>();
+                            BackgroundJobMonitor.HandleException(jobName, exceptionEventArgs, exceptionLogger);
+                        };
+                });
             });
 
             return services;

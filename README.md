@@ -2,7 +2,7 @@
 <!-- Because this file contains custom formatting for the heading, we need to
     disable some of the markdownlint rules -->
 <!-- markdownlint-disable -->
-<p align=center><img src="./docs/media/logos/promitor.png" alt="Promitor Logo" height="150"></p>
+<p align=center><img src="https://raw.githubusercontent.com/promitor/docs/main/docs/media/logos/promitor.png" alt="Promitor Logo" height="150"></p>
 
 <h1 align="center">Bringing Azure Monitor metrics where you need them.</h1>
 
@@ -16,23 +16,25 @@
 </p>
 
 **Promitor** is an Azure Monitor scraper which makes the metrics available through a scraping endpoint for Prometheus or push to a StatsD server.
-<!-- markdownlint-enable -->
-
-<!-- markdownlint-disable MD002 -->
 
 ## Documentation
 
-All documentation is available on [promitor.io](https://promitor.io)
+All documentation is available on [promitor.io](https://docs.promitor.io)
 
 ## End-users
 
 We are proud to have the following end-users(s) running Promitor in production:
 
-![Adobe](./docs/media/logos/end-users/adobe.png)
-![ResDiary](./docs/media/logos/end-users/resdiary.png)
-![Trynz](./docs/media/logos/end-users/trynz.png)
-![Vsoft](./docs/media/logos/end-users/vsoft.png)
-![Walmart Labs](./docs/media/logos/end-users/walmart-labs.jpg)
+![Adfinis](./media/logos/end-users/adfinis.png)
+![Adobe](./media/logos/end-users/adobe.png)
+![Albert Heijn](./media/logos/end-users/albert-heijn.png)
+![Axon](./media/logos/end-users/axon.png)
+![Bryte Blue](./media/logos/end-users/bryte-blue.png)
+![ResDiary](./media/logos/end-users/resdiary.png)
+![theTradeDesk](./media/logos/end-users/the-trade-desk.png)
+![Trynz](./media/logos/end-users/trynz.png)
+![Vsoft](./media/logos/end-users/vsoft.png)
+![Walmart Labs](./media/logos/end-users/walmart-labs.jpg)
 
 Are you a Promitor user? Let us know and [get listed](https://forms.gle/hjcpaaVFa1A1hZaK6)!
 
@@ -41,10 +43,14 @@ Are you a Promitor user? Let us know and [get listed](https://forms.gle/hjcpaaVF
 All contribution guidelines can be found [here](./.github/CONTRIBUTING.md). We
 welcome bug reports, improvement suggestions and pull requests.
 
-Want to see support for a scraper that is not [already supported](https://promitor.io/configuration/v2.x/metrics/#supported-azure-services)?
+Want to see support for a scraper that is not [already supported](https://docs.promitor.io/configuration/v2.x/metrics/#supported-azure-services)?
 You can contribute by [adding one yourself](adding-a-new-scraper.md)!
 
-Information about making changes to Promitor can be found [here](development-guide.md).
+Information about making changes to Promitor can be found [here](contributing.md).
+
+### Testing Infrastructure
+
+Our testing infrastructure is managed through Bicep and is open to contributions on [promitor/testing-infrastructure](https://github.com/promitor/testing-infrastructure).
 
 ## Support
 
@@ -55,6 +61,7 @@ Thanks for those who are supporting us via [GitHub Sponsors](https://github.com/
 [![Carlo Garcia-Mier](./media/supporters/CarloGarcia.jpg)](https://github.com/CarloGarcia)
 [![Jorge Turrado Ferrero](./media/supporters/JorTurFer.jpg)](https://github.com/JorTurFer)
 [![Karl Ots](./media/supporters/karlgots.jpg)](https://github.com/karlgots)
+[![Loc Mai](./media/supporters/locmai.jpg)](https://github.com/locmai)
 [![Lovelace Engineering](./media/supporters/LovelaceEngineering.png)](https://github.com/LovelaceEngineering)
 [![Nills Franssens](./media/supporters/nillsf.jpg)](https://github.com/NillsF)
 [![Richard Simpson](./media/supporters/RichiCoder1.jpg)](https://github.com/RichiCoder1)
@@ -64,12 +71,16 @@ Thanks for those who are supporting us via [GitHub Sponsors](https://github.com/
 
 Learn more about our security policy [here](https://github.com/tomkerkhove/promitor/security/policy).
 
+## Performance
+
+Learn more about our performance tests [here](tests/README.md).
+
 ## Donate
 
 Promitor is fully OSS and built free-of-charge, however, if you appreciate my work
 you can do a small donation.
 
-[![Donate](https://img.shields.io/badge/Donate%20via-GitHub-blue.svg?style=flat-square)](https://github.com/users/tomkerkhove/sponsorship)
+[![Donate](https://img.shields.io/badge/Donate%20via-GitHub-blue.svg?style=flat-square)](https://github.com/sponsors/promitor)
 
 ## Get in touch
 
@@ -79,7 +90,7 @@ free to [write me an email](mailto:kerkhove.tom@gmail.com) or [get listed as a u
 ## Thank you
 
 We'd like to thank all the services, tooling & NuGet packages that support us -
- [Thank you](https://promitor.io/thank-you)!
+ [Thank you](https://docs.promitor.io/thank-you)!
 
 ## License Information
 

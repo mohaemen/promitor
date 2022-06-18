@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Promitor.Agents.ResourceDiscovery.Scheduling;
+using Promitor.Core;
 using Promitor.Tests.Integration.Clients;
 using Xunit;
 using Xunit.Abstractions;
@@ -40,7 +41,6 @@ namespace Promitor.Tests.Integration.Services.ResourceDiscovery
         public async Task Prometheus_Scrape_ExpectedAzureSubscriptionInfoMetricIsAvailable()
         {
             // Arrange
-            const int expectedSubscriptionCount = 2; // We expect to get our 2 Azure subscriptions here
             var resourceDiscoveryClient = new ResourceDiscoveryClient(Configuration, Logger);
 
             // Act
@@ -50,7 +50,7 @@ namespace Promitor.Tests.Integration.Services.ResourceDiscovery
             Assert.NotNull(gaugeMetric);
             Assert.Equal(AzureSubscriptionDiscoveryBackgroundJob.MetricName, gaugeMetric.Name);
             Assert.NotNull(gaugeMetric.Measurements);
-            Assert.Equal(expectedSubscriptionCount, gaugeMetric.Measurements.Count);
+            Assert.Single(gaugeMetric.Measurements);
         }
 
         [Fact]
@@ -65,6 +65,38 @@ namespace Promitor.Tests.Integration.Services.ResourceDiscovery
             // Assert
             Assert.NotNull(gaugeMetric);
             Assert.Equal(AzureResourceGroupsDiscoveryBackgroundJob.MetricName, gaugeMetric.Name);
+            Assert.NotNull(gaugeMetric.Measurements);
+            Assert.False(gaugeMetric.Measurements.Count < 1);
+        }
+
+        [Fact]
+        public async Task Prometheus_Scrape_ExpectedAzureResourceGraphThrottlingMetricIsAvailable()
+        {
+            // Arrange
+            var resourceDiscoveryClient = new ResourceDiscoveryClient(Configuration, Logger);
+
+            // Act
+            var gaugeMetric = await resourceDiscoveryClient.WaitForPrometheusMetricAsync(RuntimeMetricNames.RateLimitingForResourceGraph);
+
+            // Assert
+            Assert.NotNull(gaugeMetric);
+            Assert.Equal(RuntimeMetricNames.RateLimitingForResourceGraph, gaugeMetric.Name);
+            Assert.NotNull(gaugeMetric.Measurements);
+            Assert.False(gaugeMetric.Measurements.Count < 1);
+        }
+
+        [Fact]
+        public async Task Prometheus_Scrape_ExpectedResourceGraphThrottledMetricIsAvailable()
+        {
+            // Arrange
+            var resourceDiscoveryClient = new ResourceDiscoveryClient(Configuration, Logger);
+
+            // Act
+            var gaugeMetric = await resourceDiscoveryClient.WaitForPrometheusMetricAsync(RuntimeMetricNames.ResourceGraphThrottled);
+
+            // Assert
+            Assert.NotNull(gaugeMetric);
+            Assert.Equal(RuntimeMetricNames.ResourceGraphThrottled, gaugeMetric.Name);
             Assert.NotNull(gaugeMetric.Measurements);
             Assert.False(gaugeMetric.Measurements.Count < 1);
         }

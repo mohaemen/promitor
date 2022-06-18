@@ -27,6 +27,9 @@ namespace Promitor.Core.Scraping.Configuration.Serialization.v1.Core
                 case ResourceType.ApplicationGateway:
                     var applicationGatewayLogger = _loggerFactory.CreateLogger<ApplicationGatewayDeserializer>();
                     return new ApplicationGatewayDeserializer(applicationGatewayLogger);
+                case ResourceType.ApplicationInsights:
+                    var applicationInsightsLogger = _loggerFactory.CreateLogger<ApplicationInsightsDeserializer>();
+                    return new ApplicationInsightsDeserializer(applicationInsightsLogger);
                 case ResourceType.AppPlan:
                     var appPlanLogger = _loggerFactory.CreateLogger<AppPlanDeserializer>();
                     return new AppPlanDeserializer(appPlanLogger);
@@ -36,6 +39,9 @@ namespace Promitor.Core.Scraping.Configuration.Serialization.v1.Core
                 case ResourceType.BlobStorage:
                     var blobStorageLogger = _loggerFactory.CreateLogger<BlobStorageDeserializer>();
                     return new BlobStorageDeserializer(blobStorageLogger);
+                case ResourceType.Cdn:
+                    var cdnLogger = _loggerFactory.CreateLogger<CdnDeserializer>();
+                    return new CdnDeserializer(cdnLogger);
                 case ResourceType.ContainerInstance:
                     var containerInstanceLogger = _loggerFactory.CreateLogger<ContainerInstanceDeserializer>();
                     return new ContainerInstanceDeserializer(containerInstanceLogger);
@@ -45,6 +51,12 @@ namespace Promitor.Core.Scraping.Configuration.Serialization.v1.Core
                 case ResourceType.CosmosDb:
                     var cosmosDbLogger = _loggerFactory.CreateLogger<CosmosDbDeserializer>();
                     return new CosmosDbDeserializer(cosmosDbLogger);
+                case ResourceType.DataFactory:
+                    var dataFactoryDeserializer = _loggerFactory.CreateLogger<DataFactoryDeserializer>();
+                    return new DataFactoryDeserializer(dataFactoryDeserializer);
+                case ResourceType.DataShare:
+                    var dataShareLogger = _loggerFactory.CreateLogger<DataShareDeserializer>();
+                    return new DataShareDeserializer(dataShareLogger);
                 case ResourceType.DeviceProvisioningService:
                     var deviceProvisioningServiceLogger = _loggerFactory.CreateLogger<DeviceProvisioningServiceDeserializer>();
                     return new DeviceProvisioningServiceDeserializer(deviceProvisioningServiceLogger);
@@ -75,12 +87,21 @@ namespace Promitor.Core.Scraping.Configuration.Serialization.v1.Core
                 case ResourceType.KubernetesService:
                     var kubernetesServiceLogger = _loggerFactory.CreateLogger<KubernetesServiceDeserializer>();
                     return new KubernetesServiceDeserializer(kubernetesServiceLogger);
+                case ResourceType.LoadBalancer:
+                    var loadBalancerLogger = _loggerFactory.CreateLogger<LoadBalancerDeserializer>();
+                    return new LoadBalancerDeserializer(loadBalancerLogger);
                 case ResourceType.LogicApp:
                     var logicAppLogger = _loggerFactory.CreateLogger<LogicAppDeserializer>();
                     return new LogicAppDeserializer(logicAppLogger);
+                case ResourceType.MariaDb:
+                    var mariaDbLogger = _loggerFactory.CreateLogger<MariaDbDeserializer>();
+                    return new MariaDbDeserializer(mariaDbLogger);
                 case ResourceType.MonitorAutoscale:
                     var monitorAutoscaleLogger = _loggerFactory.CreateLogger<MonitorAutoscaleDeserializer>();
                     return new MonitorAutoscaleDeserializer(monitorAutoscaleLogger);
+                case ResourceType.MySql:
+                    var mySqlLogger = _loggerFactory.CreateLogger<MySqlDeserializer>();
+                    return new MySqlDeserializer(mySqlLogger);
                 case ResourceType.NetworkGateway:
                     var networkGatewayLogger = _loggerFactory.CreateLogger<NetworkGatewayDeserializer>();
                     return new NetworkGatewayDeserializer(networkGatewayLogger);
@@ -93,6 +114,9 @@ namespace Promitor.Core.Scraping.Configuration.Serialization.v1.Core
                 case ResourceType.RedisCache:
                     var redisCacheLogger = _loggerFactory.CreateLogger<RedisCacheDeserializer>();
                     return new RedisCacheDeserializer(redisCacheLogger);
+                case ResourceType.RedisEnterpriseCache:
+                    var redisEnterpriseCacheLogger = _loggerFactory.CreateLogger<RedisEnterpriseCacheDeserializer>();
+                    return new RedisEnterpriseCacheDeserializer(redisEnterpriseCacheLogger);
                 case ResourceType.ServiceBusNamespace:
                     var serviceBusLogger = _loggerFactory.CreateLogger<ServiceBusNamespaceDeserializer>();
                     return new ServiceBusNamespaceDeserializer(serviceBusLogger);
@@ -129,9 +153,13 @@ namespace Promitor.Core.Scraping.Configuration.Serialization.v1.Core
                 case ResourceType.VirtualMachineScaleSet:
                     var virtualMachineScaleSetLogger = _loggerFactory.CreateLogger<VirtualMachineScaleSetDeserializer>();
                     return new VirtualMachineScaleSetDeserializer(virtualMachineScaleSetLogger);
+                case ResourceType.VirtualNetwork:
+                    var virtualNetworkLogger = _loggerFactory.CreateLogger<VirtualNetworkDeserializer>();
+                    return new VirtualNetworkDeserializer(virtualNetworkLogger);
                 case ResourceType.WebApp:
                     var webAppLogger = _loggerFactory.CreateLogger<WebAppDeserializer>();
                     return new WebAppDeserializer(webAppLogger);
+                    
                 default:
                     throw new ArgumentOutOfRangeException($"Resource Type {resourceType} not supported.");
             }

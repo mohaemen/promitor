@@ -6,17 +6,11 @@ version:
 
 #### Scraper
 
-- {{% tag added %}} Provide system metrics related to agent performance & resources ([docs](https://promitor.io/operations/#performance)
- | [#341](https://github.com/tomkerkhove/promitor/issues/341))
+- {{% tag added %}} Provide scraper for Azure Database for MySQL Servers  ([docs](https://docs.promitor.io/v2.x/scraping/providers/mysql/)
+ | [#1880](https://github.com/tomkerkhove/promitor/issues/324))
+- {{% tag fixed %}} Honor flag not to include timestamps in system metrics for Prometheus ([#1915](https://github.com/tomkerkhove/promitor/pull/1915))
 
 #### Resource Discovery
 
-- {{% tag added %}} Provide Prometheus endpoint for scraping metrics
-- {{% tag added %}} Provide system metrics related to agent performance & resources ([docs](https://promitor.io/operations/#performance))
- | [#341](https://github.com/tomkerkhove/promitor/issues/341))
-- {{% tag added %}} Provide system metric related to HTTP request performance ([docs](https://promitor.io/operations/#performance)
- | [#1717](https://github.com/tomkerkhove/promitor/issues/1717))
-- {{% tag added %}} Provide system metrics with discovered subscription information ([docs](https://promitor.io/operations/#discovery))
- | [#1716](https://github.com/tomkerkhove/promitor/issues/1716))
-- {{% tag added %}} Provide system metrics with discovered resource group information ([docs](https://promitor.io/operations/#discovery))
- | [#1716](https://github.com/tomkerkhove/promitor/issues/1716))
+- {{% tag added %}} Provide scraper for Azure Database for MySQL Servers ([docs](https://docs.promitor.io/v2.x/scraping/providers/mysql/)
+ | [#1880](https://github.com/tomkerkhove/promitor/issues/324))
